@@ -14,11 +14,9 @@
     </nav>
 
     <div class="container mt-4">
-      <!-- Lesson List View -->
       <div v-if="!showCart">
         <h2 class="mb-4">Available Classes</h2>
         
-        <!-- Search -->
         <div class="search-container">
           <div class="input-group search-bar-wrapper">
             <span class="input-group-text search-icon-wrapper"><i class="fas fa-search"></i></span>
@@ -32,7 +30,6 @@
           </div>
         </div>
 
-        <!-- Sort -->
         <div class="sort-container">
           <div class="row">
             <div class="col-md-3">
@@ -55,7 +52,6 @@
           </div>
         </div>
 
-        <!-- Lessons Grid -->
         <div class="row" v-if="!loading">
           <div class="col-md-6 col-lg-4" v-for="lesson in displayedLessons" :key="lesson._id">
             <div class="card lesson-card">
@@ -93,7 +89,6 @@
         </div>
       </div>
 
-      <!-- Cart View -->
       <div v-if="showCart">
         <h2 class="mb-4">Shopping Cart</h2>
         
@@ -143,7 +138,6 @@
         </div>
       </div>
 
-      <!-- Checkout Modal -->
       <div class="modal fade" id="checkoutModal" tabindex="-1" ref="checkoutModalRef">
         <div class="modal-dialog">
           <div class="modal-content">
@@ -196,7 +190,6 @@
         </div>
       </div>
 
-      <!-- Success Message -->
       <div v-if="orderSuccess" class="alert alert-success alert-dismissible fade show mt-4" role="alert">
         <h4 class="alert-heading"><i class="fas fa-check-circle me-2"></i>Order Confirmed!</h4>
         <p>Thank you, {{ orderCustomerName }}! Your order has been placed successfully.</p>
@@ -216,10 +209,9 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { Modal } from 'bootstrap'
 
-// Data
 const lessons = ref([])
 const displayedLessons = ref([])
-const filteredLessons = ref([]) // Store filtered lessons from search
+const filteredLessons = ref([])
 const cart = ref([])
 const showCart = ref(false)
 const loading = ref(true)
@@ -231,18 +223,12 @@ const checkoutForm = ref({
   phone: ''
 })
 const orderSuccess = ref(false)
-const orderTotal = ref(0)  // Store order total before clearing cart
-const orderCustomerName = ref('')  // Store customer name before clearing form
-// Backend API URL - Uses environment variable (VITE_API_URL)
-// Development: http://localhost:3000
-// Production: https://cst3144-afterschool-backend.onrender.com (set in .env.production)
+const orderTotal = ref(0)
+const orderCustomerName = ref('')
 const apiUrl = import.meta.env.VITE_API_URL || 'https://cst3144-afterschool-backend.onrender.com'
 
-// Modal ref
 const checkoutModalRef = ref(null)
 let checkoutModal = null
-
-// Computed properties
 const totalPrice = computed(() => {
   return cart.value.reduce((total, item) => {
     return total + (item.price * item.quantity)
@@ -263,7 +249,6 @@ const isFormValid = computed(() => {
          checkoutForm.value.phone.trim() !== ''
 })
 
-// Watchers
 watch([sortBy, sortOrder], () => {
   if (lessons.value.length > 0) {
     sortLessons()
@@ -271,17 +256,13 @@ watch([sortBy, sortOrder], () => {
 })
 
 watch(searchQuery, (newVal, oldVal) => {
-  // Call backend search API on every change (search as you type)
-  // Only call if value actually changed to avoid duplicate calls
   if (newVal !== oldVal) {
     performSearch()
   }
 })
 
-// Lifecycle
 onMounted(() => {
   fetchLessons()
-  // Initialize Bootstrap modal after component is mounted
   nextTick(() => {
     if (checkoutModalRef.value) {
       checkoutModal = new Modal(checkoutModalRef.value)
@@ -289,8 +270,6 @@ onMounted(() => {
   })
 })
 
-// Methods
-// Fetch lessons from backend API
 function fetchLessons() {
   loading.value = true
   fetch(`${apiUrl}/lessons`)
@@ -302,7 +281,6 @@ function fetchLessons() {
     })
     .then(data => {
       lessons.value = data
-      // If there's a search query, perform search; otherwise show all
       if (searchQuery.value.trim()) {
         performSearch()
       } else {
@@ -318,27 +296,19 @@ function fetchLessons() {
     })
 }
 
-// Handle search input - calls backend API on every keystroke
 function handleSearchInput(event) {
-  // Call backend search API immediately (search as you type)
-  // This method is triggered on every keystroke via @input event
-  // Use the value from the event to ensure we have the latest value
   const query = event.target.value.trim()
-  searchQuery.value = query // Update v-model
+  searchQuery.value = query
   performSearch()
 }
 
-// Search lessons using backend API - called on every keystroke
 function performSearch() {
   const query = searchQuery.value.trim()
   
-  // Build the search URL with query parameter
-  // Format: GET /search?query=yourtext
   const searchUrl = `${apiUrl}/search?query=${encodeURIComponent(query)}`
   
   console.log('Searching for:', query, 'URL:', searchUrl)
   
-  // Use fetch API (no Axios) to call backend search endpoint
   fetch(searchUrl)
     .then(response => {
       if (!response.ok) {
@@ -349,21 +319,16 @@ function performSearch() {
     .then(data => {
       console.log('Search results:', data.length, 'lessons found')
       console.log('Search results data:', data)
-      // Update filtered lessons with search results from backend
       filteredLessons.value = Array.isArray(data) ? data : []
-      // Also update main lessons array to keep it in sync when showing all
       if (query === '') {
         lessons.value = filteredLessons.value
       }
-      // Apply sorting to filtered results
       applyFiltersAndSort()
     })
     .catch(error => {
       console.error('Error searching lessons:', error)
-      // On error, try to use local lessons if available
       if (lessons.value.length > 0) {
         console.log('Using local fallback search')
-        // Fallback: filter locally if backend fails
         const localQuery = query.toLowerCase()
         filteredLessons.value = lessons.value.filter(lesson => {
           return (
@@ -378,28 +343,22 @@ function performSearch() {
     })
 }
 
-// Apply both filters and sorting
 function applyFiltersAndSort() {
-  // Start with filtered lessons
   let lessonsToDisplay = [...filteredLessons.value]
   
-  // Apply sorting if sortBy is selected
   if (sortBy.value) {
     lessonsToDisplay.sort((a, b) => {
       let aVal = a[sortBy.value]
       let bVal = b[sortBy.value]
       
-      // Handle null/undefined values
       if (aVal === null || aVal === undefined) aVal = ''
       if (bVal === null || bVal === undefined) bVal = ''
       
-      // Handle string comparison
       if (typeof aVal === 'string') {
         aVal = aVal.toLowerCase()
         bVal = bVal.toLowerCase()
       }
       
-      // Compare values
       let comparison = 0
       if (aVal > bVal) {
         comparison = 1
@@ -407,37 +366,30 @@ function applyFiltersAndSort() {
         comparison = -1
       }
       
-      // Apply sort order
       return sortOrder.value === 'asc' ? comparison : -comparison
     })
   }
   
-  // Update displayed lessons - this is what Vue renders
   displayedLessons.value = lessonsToDisplay
   console.log('Displayed lessons updated:', displayedLessons.value.length)
 }
 
-// Sort lessons (now calls applyFiltersAndSort)
 function sortLessons() {
   applyFiltersAndSort()
 }
 
-// Add lesson to cart
 function addToCart(lesson) {
   if (lesson.space === 0) {
     return
   }
   
-  // Check if lesson already in cart
   const existingIndex = cart.value.findIndex(item => item._id === lesson._id)
   
   if (existingIndex >= 0) {
-    // Increase quantity if already in cart
     if (cart.value[existingIndex].quantity < cart.value[existingIndex].space + cart.value[existingIndex].quantity) {
       cart.value[existingIndex].quantity++
     }
   } else {
-    // Add new item to cart
     cart.value.push({
       _id: lesson._id,
       subject: lesson.subject,
@@ -448,41 +400,27 @@ function addToCart(lesson) {
     })
   }
   
-  // Update lesson space locally - only update ONCE
-  // The lesson object passed here is from displayedLessons, which may be:
-  // 1. A reference to an object in filteredLessons (from search results - NEW objects)
-  // 2. A reference to an object in lessons (when showing all lessons)
-  // We need to update the actual lesson object AND sync with the main lessons array
-  
-  // Update the lesson object directly (this is what's displayed)
   lesson.space--
   
-  // Also update in the main lessons array to keep it in sync
   const lessonIndex = lessons.value.findIndex(l => l._id === lesson._id)
   if (lessonIndex >= 0) {
-    // Only update if it's a different object (not the same reference)
     if (lessons.value[lessonIndex] !== lesson) {
       lessons.value[lessonIndex].space--
     }
   }
 }
 
-// Remove item from cart
 function removeFromCart(index) {
   const item = cart.value[index]
   
-  // Restore lesson availability - only update ONCE
-  // Since arrays share object references, updating one updates all
   const lessonIndex = lessons.value.findIndex(l => l._id === item._id)
   if (lessonIndex >= 0) {
-    // Restore space only ONCE - this will update all arrays
     lessons.value[lessonIndex].space += item.quantity
   }
   
   cart.value.splice(index, 1)
 }
 
-// Update cart item quantity
 function updateCartItem(index) {
   const item = cart.value[index]
   const maxQuantity = item.space + item.quantity
@@ -493,47 +431,36 @@ function updateCartItem(index) {
     item.quantity = maxQuantity
   }
   
-  // Update lesson availability
   const lessonIndex = lessons.value.findIndex(l => l._id === item._id)
   if (lessonIndex >= 0) {
     const originalSpace = lessons.value[lessonIndex].space
-    // This is a simplified update - in real scenario, track original quantity
   }
 }
 
-// Toggle between lesson list and cart view
 function toggleView() {
   showCart.value = !showCart.value
 }
 
-// Open checkout modal
 function openCheckout() {
-  // Reset form and success state
   checkoutForm.value = { name: '', phone: '' }
   orderSuccess.value = false
   
-  // Show Bootstrap modal
   if (checkoutModal) {
     checkoutModal.show()
   } else if (checkoutModalRef.value) {
-    // Initialize modal if not already initialized
     checkoutModal = new Modal(checkoutModalRef.value)
     checkoutModal.show()
   }
 }
 
-// Validate form
 function validateForm() {
-  // Validation is handled by computed properties
 }
 
-// Checkout - create order
 function checkout() {
   if (!isFormValid.value) {
     return
   }
   
-  // Prepare order data
   const orderData = {
     name: checkoutForm.value.name.trim(),
     phone: checkoutForm.value.phone.trim(),
@@ -543,7 +470,6 @@ function checkout() {
     }))
   }
   
-  // Send order to backend
   fetch(`${apiUrl}/orders`, {
     method: 'POST',
     headers: {
@@ -562,25 +488,20 @@ function checkout() {
     .then(order => {
       console.log('Order created:', order)
       
-      // Save order details BEFORE clearing cart and form
       orderTotal.value = totalPrice.value
       orderCustomerName.value = checkoutForm.value.name.trim()
       
-      // Close modal
       if (checkoutModal) {
         checkoutModal.hide()
       }
       
-      // Show success message
       orderSuccess.value = true
       
-      // Clear cart and form AFTER saving values
       cart.value = []
       checkoutForm.value.name = ''
       checkoutForm.value.phone = ''
       showCart.value = false
       
-      // Refresh lessons to get updated availability
       fetchLessons()
     })
     .catch(error => {
@@ -591,7 +512,6 @@ function checkout() {
 </script>
 
 <style scoped>
-/* Global Styles */
 * {
   box-sizing: border-box;
 }
@@ -603,7 +523,6 @@ body {
   padding-bottom: 2rem;
 }
 
-/* Navbar Styling */
 .navbar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
@@ -637,7 +556,6 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.25);
 }
 
-/* Container Styling */
 .container {
   background: rgba(255,255,255,0.95);
   border-radius: 20px;
@@ -647,7 +565,6 @@ body {
   margin-bottom: 2rem;
 }
 
-/* Headings */
 h2 {
   color: #333;
   font-weight: 700;
@@ -656,7 +573,6 @@ h2 {
   border-bottom: 3px solid #667eea;
 }
 
-/* Lesson Cards */
 .lesson-card {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   margin-bottom: 25px;
@@ -710,7 +626,6 @@ h2 {
   width: 20px;
 }
 
-/* Badge Styling */
 .badge-availability {
   font-size: 0.95rem;
   padding: 10px 15px;
@@ -720,7 +635,6 @@ h2 {
   box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
 }
 
-/* Buttons */
 .btn-primary {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
@@ -787,7 +701,6 @@ h2 {
   letter-spacing: 0.5px;
 }
 
-/* Search Container */
 .search-container {
   margin-bottom: 30px;
 }
@@ -858,7 +771,6 @@ h2 {
   box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
 }
 
-/* Sort Container */
 .sort-container {
   margin-bottom: 30px;
   padding: 1.5rem;
@@ -884,7 +796,6 @@ h2 {
   box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
 }
 
-/* Cart Styling */
 .cart-item {
   border-bottom: 2px solid #e9ecef;
   padding: 20px;
@@ -918,7 +829,6 @@ h2 {
   font-size: 1.2rem;
 }
 
-/* Total Box */
 .bg-light.rounded {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   color: white;
@@ -934,7 +844,6 @@ h2 {
   border: none;
 }
 
-/* Modal Styling */
 .modal-content {
   border-radius: 20px;
   border: none;
@@ -965,7 +874,6 @@ h2 {
   padding: 0.75rem 1rem;
 }
 
-/* Alert Styling */
 .alert {
   border-radius: 15px;
   border: none;
@@ -993,7 +901,6 @@ h2 {
   font-weight: 600;
 }
 
-/* Loading Spinner */
 .spinner-border {
   width: 3rem;
   height: 3rem;
@@ -1001,13 +908,11 @@ h2 {
   color: #667eea;
 }
 
-/* Empty State */
 .alert-info:has-text("No lessons found") {
   text-align: center;
   padding: 2rem;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .container {
     padding: 1.5rem;
@@ -1027,7 +932,6 @@ h2 {
   }
 }
 
-/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1047,7 +951,6 @@ h2 {
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Scrollbar Styling */
 ::-webkit-scrollbar {
   width: 10px;
 }

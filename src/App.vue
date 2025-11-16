@@ -7,5 +7,4 @@ import LessonBooking from './components/LessonBooking.vue'
 </template>
 
 <style>
-/* Styles are imported in main.js */
 </style>

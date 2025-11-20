@@ -4,6 +4,23 @@
 
 This is a Vue.js frontend application for booking after-school classes. The application allows users to browse available lessons, search and filter classes, add items to cart, and place orders.
 
+## Technology Stack
+
+- **Frontend Framework**: Vue.js 3
+- **Build Tool**: Vite
+- **Styling**: Bootstrap 5
+- **Icons**: Font Awesome
+- **Package Manager**: npm
+
+## Features
+
+- Browse available after-school classes
+- Search classes by subject, location, price, or availability
+- Sort classes by various criteria
+- Add classes to shopping cart
+- Checkout and place orders
+- Real-time availability updates
+
 ## Repository Links
 
 ### [Vue.js App] GitHub Repository:
@@ -22,23 +39,6 @@ https://github.com/chinna98790890varma/CST3144-afterschool-backend
 ### [AWS (or render.com) Express.js App] Route:
 
 https://cst3144-afterschool-backend.onrender.com/lessons
-
-## Technology Stack
-
-- **Frontend Framework**: Vue.js 3
-- **Build Tool**: Vite
-- **Styling**: Bootstrap 5
-- **Icons**: Font Awesome
-- **Package Manager**: npm
-
-## Features
-
-- Browse available after-school classes
-- Search classes by subject, location, price, or availability
-- Sort classes by various criteria
-- Add classes to shopping cart
-- Checkout and place orders
-- Real-time availability updates
 
 ## Installation
 
@@ -74,20 +74,6 @@ npm run build
 ```
 
 The production files will be generated in the `dist` directory.
-
-## Deployment
-
-The application is configured for GitHub Pages deployment. To deploy:
-
-1. Build the production version:
-```bash
-npm run build
-```
-
-2. Deploy to GitHub Pages:
-```bash
-npm run deploy
-```
 
 ## Environment Configuration
 
@@ -130,4 +116,18 @@ vue-frontend/
 ├── .env.production  # Production environment variables
 ├── vite.config.js   # Vite configuration
 └── package.json     # Project dependencies
+```
+
+## Deployment
+
+The application is configured for GitHub Pages deployment. To deploy:
+
+1. Build the production version:
+```bash
+npm run build
+```
+
+2. Deploy to GitHub Pages:
+```bash
+npm run deploy
 ```

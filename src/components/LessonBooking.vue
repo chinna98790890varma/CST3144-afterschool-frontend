@@ -13,6 +13,7 @@
       </div>
     </nav>
 
+    
     <div class="container mt-4">
       <div v-if="!showCart">
         <h2 class="mb-4">Available Classes</h2>

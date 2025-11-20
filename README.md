@@ -8,6 +8,7 @@ This is a Vue.js frontend application for booking after-school classes. The appl
 
 ### [Vue.js App] GitHub Repository:
 
+
 https://github.com/chinna98790890varma/CST3144-afterschool-frontend.git
 
 ### [Vue.js App] GitHub Pages:

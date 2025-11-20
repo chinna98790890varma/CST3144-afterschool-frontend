@@ -31,6 +31,166 @@
           </div>
         </div>
 
+        <div class="sort-container">
+          <div class="row">
+            <div class="col-md-3">
+              <label class="form-label">Sort By:</label>
+              <select class="form-select" v-model="sortBy" @change="sortLessons">
+                <option value="">None</option>
+                <option value="subject">Subject</option>
+                <option value="location">Location</option>
+                <option value="price">Price</option>
+                <option value="space">Availability</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Order:</label>
+              <select class="form-select" v-model="sortOrder" @change="sortLessons">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" v-if="!loading">
+          <div class="col-md-6 col-lg-4" v-for="lesson in displayedLessons" :key="lesson._id">
+            <div class="card lesson-card">
+              <div class="card-body text-center">
+                <i :class="['fas', lesson.icon || 'fa-book', 'icon-large mb-3']"></i>
+                <h5 class="card-title">{{ lesson.subject }}</h5>
+                <p class="card-text">
+                  <i class="fas fa-map-marker-alt me-2"></i>{{ lesson.location }}<br>
+                  <i class="fas fa-pound-sign me-2"></i>{{ lesson.price }}<br>
+                  <span class="badge bg-info badge-availability">
+                    <i class="fas fa-users me-1"></i>{{ lesson.space }} spaces available
+                  </span>
+                </p>
+                <button 
+                  class="btn btn-primary"
+                  :disabled="lesson.space === 0"
+                  @click="addToCart(lesson)"
+                >
+                  <i class="fas fa-cart-plus me-2"></i>
+                  {{ lesson.space === 0 ? 'Sold Out' : 'Add to Cart' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="loading" class="text-center">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+
+        <div v-if="!loading && displayedLessons.length === 0" class="alert alert-info">
+          No lessons found.
+        </div>
+      </div>
+
+      <div v-if="showCart">
+        <h2 class="mb-4">Shopping Cart</h2>
+        
+        <div v-if="cart.length === 0" class="alert alert-info">
+          Your cart is empty. <a href="#" @click="toggleView">Browse lessons</a>
+        </div>
+
+        <div v-else>
+          <div class="cart-item" v-for="(item, index) in cart" :key="index">
+            <div class="row align-items-center">
+              <div class="col-md-6">
+                <h5>{{ item.subject }}</h5>
+                <p class="text-muted mb-0">
+                  <i class="fas fa-map-marker-alt me-2"></i>{{ item.location }}<br>
+                  <i class="fas fa-pound-sign me-2"></i>{{ item.price }} per class
+                </p>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Quantity:</label>
+                <input 
+                  type="number" 
+                  class="form-control" 
+                  v-model.number="item.quantity"
+                  min="1"
+                  :max="item.space + item.quantity"
+                  @change="updateCartItem(index)"
+                >
+              </div>
+              <div class="col-md-2">
+                <strong>£{{ (item.price * item.quantity).toFixed(2) }}</strong>
+              </div>
+              <div class="col-md-1">
+                <button class="btn btn-danger btn-sm" @click="removeFromCart(index)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 p-3 bg-light rounded">
+            <h4>Total: £{{ totalPrice.toFixed(2) }}</h4>
+          </div>
+
+          <button class="btn btn-secondary mt-3" @click="toggleView">
+            <i class="fas fa-arrow-left me-2"></i>Back to Lessons
+          </button>
+        </div>
+      </div>
+
+      <div class="modal fade" id="checkoutModal" tabindex="-1" ref="checkoutModalRef">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Checkout</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form @submit.prevent="checkout">
+                <div class="mb-3">
+                  <label class="form-label">Name *</label>
+                  <input 
+                    type="text" 
+                    class="form-control"
+                    v-model="checkoutForm.name"
+                    @input="validateForm"
+                    placeholder="Enter your name (letters only)"
+                    required
+                  >
+                  <div class="text-danger small" v-if="checkoutForm.name && !isValidName">
+                    Name must contain only letters
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Phone *</label>
+                  <input 
+                    type="text" 
+                    class="form-control"
+                    v-model="checkoutForm.phone"
+                    @input="validateForm"
+                    placeholder="Enter your phone (numbers only)"
+                    required
+                  >
+                  <div class="text-danger small" v-if="checkoutForm.phone && !isValidPhone">
+                    Phone must contain only numbers
+                  </div>
+                </div>
+                <div class="d-grid">
+                  <button 
+                    type="submit" 
+                    class="btn btn-primary btn-checkout"
+                    :disabled="!isFormValid"
+                  >
+                    <i class="fas fa-check me-2"></i>Complete Order
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div v-if="orderSuccess" class="alert alert-success alert-dismissible fade show mt-4" role="alert">
         <h4 class="alert-heading"><i class="fas fa-check-circle me-2"></i>Order Confirmed!</h4>
         <p>Thank you, {{ orderCustomerName }}! Your order has been placed successfully.</p>

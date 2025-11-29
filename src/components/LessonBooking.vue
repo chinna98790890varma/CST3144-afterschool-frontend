@@ -57,7 +57,8 @@
           <div class="col-md-6 col-lg-4" v-for="lesson in displayedLessons" :key="lesson._id">
             <div class="card lesson-card">
               <div class="card-body text-center">
-                <i :class="['fas', lesson.icon || 'fa-book', 'icon-large mb-3']"></i>
+                <img v-if="getLessonImage(lesson.subject)" :src="getLessonImage(lesson.subject)" class="lesson-image mb-3" :alt="lesson.subject">
+                <i v-else :class="['fas', lesson.icon || 'fa-book', 'icon-large mb-3']"></i>
                 <h5 class="card-title">{{ lesson.subject }}</h5>
                 <p class="card-text">
                   <i class="fas fa-map-marker-alt me-2"></i>{{ lesson.location }}<br>
@@ -270,6 +271,25 @@ onMounted(() => {
     }
   })
 })
+
+function getLessonImage(subject) {
+  const map = {
+    'Mathematics': 'images/math.png',
+    'English Literature': 'images/english.png',
+    'Science': 'images/science.png',
+    'Art & Design': 'images/art.png',
+    'Music': 'images/music.png',
+    'Physical Education': 'images/pe.svg',
+    'Computer Science': 'images/cs.svg',
+    'Geography': 'images/geography.svg',
+    'History': 'images/history.svg',
+    'French Language': 'images/french.svg',
+    'Drama': 'images/drama.svg',
+    'Cooking': 'images/cooking.svg',
+    'Physics': 'images/physics.svg'
+  }
+  return map[subject] || null
+}
 
 function fetchLessons() {
   loading.value = true
@@ -507,6 +527,7 @@ function checkout() {
     })
     .catch(error => {
       console.error('Error creating order:', error)
+
       alert('Failed to create order: ' + error.message)
     })
 }
@@ -607,6 +628,18 @@ h2 {
 
 .lesson-card:hover .icon-large {
   transform: scale(1.1) rotate(5deg);
+}
+
+.lesson-image {
+  height: 120px;
+  width: 100%;
+  object-fit: contain;
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.lesson-card:hover .lesson-image {
+  transform: scale(1.1);
 }
 
 .card-title {
